@@ -1,8 +1,11 @@
 package client
 
-import "github.com/Gamebuildr/Hal/pkg/router"
-import "net/http"
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/Gamebuildr/Hal/pkg/router"
+)
 
 // RunContainerEndpoint is the API route for running a container
 const RunContainerEndpoint = "/api/container/run"
@@ -18,8 +21,9 @@ func CreateRoutes(halRouter router.Router) {
 }
 
 func runContainer(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("Running Docker Container")
-	return
+	// engine := compose.Docker{}
+	// container := compose.Container{Engine: engine}
+	// container.Engine.RunContainer()
 }
 
 func containerCount(w http.ResponseWriter, r *http.Request) {
