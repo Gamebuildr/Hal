@@ -10,8 +10,11 @@ import (
 
 // Docker is the implementation of the Docker container engine
 type Docker struct {
-	client *client.Client
+	Client *client.Client
 }
+
+// ContainerNotFound error message when container id cannot be found with image name
+const ContainerNotFound string = "container id not found"
 
 // RunContainer will run a docker container
 func (engine Docker) RunContainer(image string) error {
@@ -20,7 +23,7 @@ func (engine Docker) RunContainer(image string) error {
 		return err
 	}
 	ctx := context.Background()
-	if err := engine.client.ContainerStart(ctx, containerID, types.ContainerStartOptions{}); err != nil {
+	if err := engine.Client.ContainerStart(ctx, containerID, types.ContainerStartOptions{}); err != nil {
 		return err
 	}
 	return nil
@@ -30,7 +33,7 @@ func (engine Docker) RunContainer(image string) error {
 func (engine Docker) ActiveContainers() (int, error) {
 	count := 0
 
-	containers, err := engine.client.ContainerList(context.Background(), types.ContainerListOptions{})
+	containers, err := engine.Client.ContainerList(context.Background(), types.ContainerListOptions{})
 	if err != nil {
 		return count, err
 	}
@@ -38,7 +41,7 @@ func (engine Docker) ActiveContainers() (int, error) {
 }
 
 func (engine Docker) getContainerID(image string) (string, error) {
-	containers, err := engine.client.ContainerList(context.Background(), types.ContainerListOptions{})
+	containers, err := engine.Client.ContainerList(context.Background(), types.ContainerListOptions{})
 	if err != nil {
 		return "", err
 	}
@@ -47,5 +50,5 @@ func (engine Docker) getContainerID(image string) (string, error) {
 			return container.ID, nil
 		}
 	}
-	return "", errors.New("container id not found")
+	return "", errors.New(ContainerNotFound)
 }

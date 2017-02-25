@@ -8,3 +8,9 @@ type endpoint func(http.ResponseWriter, *http.Request)
 type Router interface {
 	AddRoute(url string, endpoint endpoint)
 }
+
+// APIRouter is the base implementation for routers
+type APIRouter struct {
+	RequestHandler *http.ServeMux
+	Router         Router
+}

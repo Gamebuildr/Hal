@@ -1,25 +1,12 @@
 package compose
 
 import (
-	"fmt"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
-	"encoding/json"
-
+	"github.com/Gamebuildr/Hal/pkg/testutils"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 )
-
-func okResponseTestServer(content []types.Container) *httptest.Server {
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		encoder := json.NewEncoder(w)
-		encode := encoder.Encode(content)
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintln(w, encode)
-	}))
-}
 
 func TestDockerCanRunSpecifiedContainer(t *testing.T) {
 	mockImage := "mock/image:latest"
@@ -29,7 +16,7 @@ func TestDockerCanRunSpecifiedContainer(t *testing.T) {
 		types.Container{ID: "987654321", Image: "test/mock/images:latest"},
 	}
 
-	testServer := okResponseTestServer(mockContainers)
+	testServer := testutils.OkResponseContainerServer(mockContainers)
 	defer testServer.Close()
 
 	cli, err := client.NewClient(testServer.URL, "1.13", nil, map[string]string{})
@@ -37,7 +24,7 @@ func TestDockerCanRunSpecifiedContainer(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	engine := Docker{client: cli}
+	engine := Docker{Client: cli}
 	container := Container{Engine: engine}
 
 	if err := container.Engine.RunContainer(mockImage); err != nil {
@@ -53,7 +40,7 @@ func TestDockerRunContainerReturnsErrorWhenContainerNotFound(t *testing.T) {
 		types.Container{ID: "987654321", Image: "test/mock/images:latest"},
 	}
 
-	testServer := okResponseTestServer(mockContainers)
+	testServer := testutils.OkResponseContainerServer(mockContainers)
 	defer testServer.Close()
 
 	cli, err := client.NewClient(testServer.URL, "1.13", nil, map[string]string{})
@@ -61,7 +48,7 @@ func TestDockerRunContainerReturnsErrorWhenContainerNotFound(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	engine := Docker{client: cli}
+	engine := Docker{Client: cli}
 	container := Container{Engine: engine}
 
 	runErr := container.Engine.RunContainer("no_container")
@@ -76,7 +63,7 @@ func TestDockerReturnsRunningContainerCount(t *testing.T) {
 		types.Container{ID: "test_two"},
 	}
 
-	testServer := okResponseTestServer(mockContainers)
+	testServer := testutils.OkResponseContainerServer(mockContainers)
 	defer testServer.Close()
 
 	cli, err := client.NewClient(testServer.URL, "1.13", nil, map[string]string{})
@@ -84,7 +71,7 @@ func TestDockerReturnsRunningContainerCount(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	engine := Docker{client: cli}
+	engine := Docker{Client: cli}
 	container := Container{Engine: engine}
 
 	count, err := container.Engine.ActiveContainers()
@@ -106,14 +93,14 @@ func TestDockerCanGetContainerIDByImageName(t *testing.T) {
 		types.Container{ID: mockID, Image: mockImage},
 		types.Container{ID: "987654321", Image: "test/mock/images:latest"},
 	}
-	testServer := okResponseTestServer(mockContainers)
+	testServer := testutils.OkResponseContainerServer(mockContainers)
 	defer testServer.Close()
 
 	cli, err := client.NewClient(testServer.URL, "1.13", nil, map[string]string{})
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	engine := Docker{client: cli}
+	engine := Docker{Client: cli}
 	container := Container{Engine: engine}
 
 	id, err := container.Engine.getContainerID(mockImage)
