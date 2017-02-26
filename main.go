@@ -21,4 +21,5 @@ func main() {
 	}
 	apiClient.Engine = compose.Docker{Client: cli}
 	apiClient.CreateRoutes()
+	http.ListenAndServe(":3000", apiClient.Router.RequestHandler)
 }

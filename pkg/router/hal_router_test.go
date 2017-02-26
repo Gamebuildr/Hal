@@ -9,13 +9,13 @@ import (
 const mockURL string = "/mock/url"
 const okResponse = 200
 
-func MockResponse(w http.ResponseWriter, r *http.Request) {
-	return
+func MockResponse() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 }
 
 func TestHalRouteCanAddNewRoutes(t *testing.T) {
 	mockrouter := HalRouter{RequestHandler: http.NewServeMux()}
-	mockrouter.AddRoute(mockURL, MockResponse)
+	mockrouter.AddRoute(mockURL, MockResponse())
 
 	r, err := http.NewRequest("POST", mockURL, nil)
 	if err != nil {

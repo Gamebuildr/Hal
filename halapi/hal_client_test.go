@@ -2,11 +2,10 @@ package halapi
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/Gamebuildr/Hal/pkg/compose"
@@ -49,6 +48,7 @@ func TestHalClientRunContainerFindsCorrectImage(t *testing.T) {
 
 	image := []byte(`{"image":"mock/image:latest"}`)
 	r, err := http.NewRequest("POST", RunContainerRoute, bytes.NewBuffer(image))
+	testutils.AuthenticateRoute(r)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -76,6 +76,7 @@ func TestHalClientRunContainerReturnsErrorWhenImageNotFound(t *testing.T) {
 
 	image := []byte(`{"image":"different/image:latest"}`)
 	r, err := http.NewRequest("POST", RunContainerRoute, bytes.NewBuffer(image))
+	testutils.AuthenticateRoute(r)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -83,16 +84,18 @@ func TestHalClientRunContainerReturnsErrorWhenImageNotFound(t *testing.T) {
 	w := httptest.NewRecorder()
 	mockClient.Router.RequestHandler.ServeHTTP(w, r)
 
-	if w.Code != http.StatusInternalServerError {
-		t.Errorf("Expected %v, but got %v", http.StatusInternalServerError, w.Code)
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected %v, but got %v", http.StatusOK, w.Code)
 	}
 
-	errMessage, err := ioutil.ReadAll(w.Body)
-	if err != nil {
+	jsonResp := Response{}
+	resp, err := ioutil.ReadAll(w.Body)
+	if err := json.Unmarshal(resp, &jsonResp); err != nil {
 		t.Fatalf(err.Error())
 	}
-	if strings.Compare(string(errMessage), compose.ContainerNotFound) == 0 {
-		t.Fatalf("Expected %v, but got %v", compose.ContainerNotFound, string(errMessage))
+
+	if jsonResp.Error != compose.ContainerNotFound {
+		t.Errorf("Expected %v, but got %v", compose.ContainerNotFound, jsonResp.Error)
 	}
 }
 
@@ -107,6 +110,7 @@ func TestHalClientContainerActiveCountRouteAccessible(t *testing.T) {
 	mockClient.CreateRoutes()
 
 	r, err := http.NewRequest("GET", ContainerCountRoute, nil)
+	testutils.AuthenticateRoute(r)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -134,6 +138,7 @@ func TestHalClientContainerActiveCountReturnsCorrectNumber(t *testing.T) {
 	mockClient.CreateRoutes()
 
 	r, err := http.NewRequest("GET", ContainerCountRoute, nil)
+	testutils.AuthenticateRoute(r)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -144,12 +149,13 @@ func TestHalClientContainerActiveCountReturnsCorrectNumber(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected %v, but got %v", http.StatusOK, w.Code)
 	}
+
+	jsonResp := Response{}
 	resp, err := ioutil.ReadAll(w.Body)
-	if err != nil {
+	if err := json.Unmarshal(resp, &jsonResp); err != nil {
 		t.Fatalf(err.Error())
 	}
-	stringResp, _ := strconv.ParseInt(string(resp), 0, 64)
-	if stringResp != 2 {
-		t.Errorf("Expected %v, but got %v", 2, stringResp)
+	if jsonResp.ContainerCount != 2 {
+		t.Errorf("Expected %v, but got %v", 2, jsonResp.ContainerCount)
 	}
 }
