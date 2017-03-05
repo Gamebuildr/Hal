@@ -1,7 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"os"
+	"path"
+	"path/filepath"
 
 	"github.com/Gamebuildr/Hal/halapi"
 	"github.com/Gamebuildr/Hal/pkg/compose"
@@ -10,9 +14,20 @@ import (
 	"github.com/docker/docker/client"
 )
 
+const logFileName string = "hal_api_client_"
+
 func main() {
 	apiClient := halapi.HalClient{}
-	apiClient.Log = logger.SystemLogger{}
+
+	// create log directory
+	rootDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		fmt.Printf(err.Error())
+		return
+	}
+	logDir := path.Join(rootDir, "halapi/logs", logFileName)
+	fileLogger := logger.FileLogSave{LogFileDir: logDir}
+	apiClient.Log = logger.SystemLogger{LogSave: fileLogger}
 	apiClient.Router = router.HalRouter{RequestHandler: http.NewServeMux()}
 
 	cli, err := client.NewEnvClient()
@@ -21,5 +36,6 @@ func main() {
 	}
 	apiClient.Engine = compose.Docker{Client: cli}
 	apiClient.CreateRoutes()
+
 	http.ListenAndServe(":3000", apiClient.Router.RequestHandler)
 }
