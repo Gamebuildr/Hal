@@ -1,2 +1,2 @@
 # Hal
-Docker wrapping API service to start up and close down containers.
+Docker wrapping API service to monitor and start docker containers.
