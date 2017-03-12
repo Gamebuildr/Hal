@@ -16,4 +16,4 @@ deployment:
   prod:
     branch: master
     commands:
-      - sudo /opt/google-cloud-sdk/bin/gcloud compute ssh gogeta-instance-1 --command="echo Running Hal"
+      - sudo /opt/google-cloud-sdk/bin/gcloud compute ssh gogeta-instance-1 --zone=europe-west1-b --command="echo Running Hal"
