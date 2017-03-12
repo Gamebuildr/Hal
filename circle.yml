@@ -4,7 +4,6 @@ dependencies:
     - sudo /opt/google-cloud-sdk/bin/gcloud --quiet components update
     - sudo /opt/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
     - sudo /opt/google-cloud-sdk/bin/gcloud config set project $GCLOUD_PROJECT
-    - sudo /opt/google-cloud-sdk/bin/gcloud compute ssh gogeta-instance-1 --zone=europe-west1-b --command="echo Running Hal"
     - sudo mv ~/.ssh/id_circle-ci-gcloud ~/.ssh/google_compute_engine
     - sudo mv ~/.ssh/id_circle-ci-gcloud.pub ~/.ssh/google_compute_engine.pub
     - go get -t -d -v ./...
