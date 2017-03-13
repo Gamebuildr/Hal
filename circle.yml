@@ -6,6 +6,7 @@ dependencies:
     - sudo /opt/google-cloud-sdk/bin/gcloud config set project $GCLOUD_PROJECT
     - go get -t -d -v ./...
     - go build -v
+    - go install -v
 
 test:
   override:
@@ -15,5 +16,4 @@ deployment:
   prod:
     branch: master
     commands:
-      - ls /usr/local/go_workspace/bin
       - sudo scp -i ~/.ssh/id_circle-ci /usr/local/go_workspace/bin/Hal boomer@35.187.20.26:/var/www/go/bin
