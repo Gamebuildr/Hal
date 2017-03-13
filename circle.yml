@@ -15,4 +15,5 @@ deployment:
   prod:
     branch: master
     commands:
-      - sudo scp -i ~/.ssh/circle-ci /usr/local/go/bin/go/Hal boomer@35.187.20.26:/var/www/go/bin
+      - ssh -i ~/.ssh/id_circle-ci boomer@35.187.20.26 echo test
+      - sudo scp -i ~/.ssh/id_circle-ci /usr/local/go/bin/go/Hal boomer@35.187.20.26:/var/www/go/bin
