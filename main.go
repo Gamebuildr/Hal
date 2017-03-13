@@ -33,9 +33,11 @@ func main() {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		apiClient.Log.Error(err.Error())
+		return
 	}
 	apiClient.Engine = compose.Docker{Client: cli}
 	apiClient.CreateRoutes()
 
+	apiClient.Log.Info("Running Hal Client on port 3000")
 	http.ListenAndServe(":3000", apiClient.Router.RequestHandler)
 }

@@ -16,5 +16,4 @@ deployment:
     branch: master
     commands:
       - ssh -i ~/.ssh/circle-ci boomer@35.187.20.26 echo test
-      - sudo /opt/google-cloud-sdk/bin/gcloud compute copy-files <artifact> <instance_name:path_to_artifact>
       - sudo /opt/google-cloud-sdk/bin/gcloud compute copy-files /usr/local/go/bin/go/Hal boomer@gogeta-instance-1:/var/www/go/bin
