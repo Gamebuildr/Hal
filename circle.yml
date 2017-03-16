@@ -22,3 +22,6 @@ deployment:
     commands:
       - sudo scp -i ~/.ssh/id_circle-ci /home/ubuntu/bin/Hal boomer@35.187.20.26:/var/www/go/bin
       - ssh -i ~/.ssh/id_circle-ci boomer@35.187.20.26 sudo service supervisor restart
+      - sudo scp -i ~/.ssh/id_mr-robot /home/ubuntu/bin/Hal chvckd@104.199.104.178:/var/www/go/bin
+      - ssh -i ~/.ssh/id_mr-robot chvckd@104.199.104.178 sudo service supervisor restart
+
