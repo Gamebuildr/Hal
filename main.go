@@ -8,9 +8,11 @@ import (
 	"path/filepath"
 
 	"github.com/Gamebuildr/Hal/halapi"
+	"github.com/Gamebuildr/Hal/pkg/channels"
 	"github.com/Gamebuildr/Hal/pkg/compose"
 	"github.com/Gamebuildr/Hal/pkg/router"
 	"github.com/Gamebuildr/gamebuildr-lumberjack/pkg/logger"
+	"github.com/braintree/manners"
 	"github.com/docker/docker/client"
 )
 
@@ -39,5 +41,19 @@ func main() {
 	apiClient.CreateRoutes()
 
 	apiClient.Log.Info("Running Hal Client on port 3000")
-	http.ListenAndServe(":3000", apiClient.Router.RequestHandler)
+	server := manners.NewServer()
+	server.Handler = apiClient.Router.RequestHandler
+	server.Addr = ":3000"
+
+	gracefulQuit := channels.OSSigChannel{}
+	gracefulQuit.Log = apiClient.Log
+	gracefulQuit.Server = server
+
+	gracefulQuit.CreateChannel()
+	gracefulQuit.StartChannelListener()
+
+	if err := server.ListenAndServe(); err != nil {
+		apiClient.Log.Error(err.Error())
+		return
+	}
 }

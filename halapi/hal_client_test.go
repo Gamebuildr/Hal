@@ -11,7 +11,6 @@ import (
 	"github.com/Gamebuildr/Hal/pkg/compose"
 	"github.com/Gamebuildr/Hal/pkg/router"
 	"github.com/Gamebuildr/Hal/pkg/testutils"
-	"github.com/Gamebuildr/gamebuildr-lumberjack/pkg/logger"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 )
@@ -28,7 +27,7 @@ func createMockClient(ts *httptest.Server, t *testing.T) (HalClient, error) {
 	}
 	mockClient.Engine = compose.Docker{Client: cli}
 	mockClient.Router = router.HalRouter{RequestHandler: http.NewServeMux()}
-	mockClient.Log = logger.MockLog{Test: t}
+	mockClient.Log = testutils.MockLog{Test: t}
 
 	return mockClient, nil
 }
