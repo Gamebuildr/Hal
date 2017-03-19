@@ -25,6 +25,6 @@ deployment:
       - sudo scp -i ~/.ssh/id_circle-ci Hal boomer@35.187.20.26:/var/www/go/bin
       - ssh -i ~/.ssh/id_circle-ci boomer@35.187.20.26 sudo service hal start
       # Add Hal to Mr.robot server
-      - ssh -i ~/.ssh/id_mr-robot chvckd@104.199.104.178 sudo service hal stop
-      - sudo scp -i ~/.ssh/id_mr-robot Hal chvckd@104.199.104.178:/var/www/go/bin
-      - ssh -i ~/.ssh/id_mr-robot chvckd@104.199.104.178 sudo service hal start
+      - ssh -i ~/.ssh/id_circle-ci boomer@104.199.104.178 sudo service hal stop
+      - sudo scp -i ~/.ssh/id_circle-ci Hal boomer@104.199.104.178:/var/www/go/bin
+      - ssh -i ~/.ssh/id_circle-ci boomer@104.199.104.178 sudo service hal start
