@@ -1,0 +1,11 @@
+[Unit]
+Description=Hal Container Service
+
+[Service]
+ExecStart=/path/to/hal/bin
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+Alias=hal.service
