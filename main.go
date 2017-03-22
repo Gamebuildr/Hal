@@ -1,17 +1,19 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
+
+	"fmt"
+
 	"os"
-	"path"
-	"path/filepath"
 
 	"github.com/Gamebuildr/Hal/halapi"
 	"github.com/Gamebuildr/Hal/pkg/channels"
 	"github.com/Gamebuildr/Hal/pkg/compose"
+	"github.com/Gamebuildr/Hal/pkg/config"
 	"github.com/Gamebuildr/Hal/pkg/router"
 	"github.com/Gamebuildr/gamebuildr-lumberjack/pkg/logger"
+	"github.com/Gamebuildr/gamebuildr-lumberjack/pkg/papertrail"
 	"github.com/braintree/manners"
 	"github.com/docker/docker/client"
 )
@@ -21,15 +23,11 @@ const logFileName string = "hal_api_client_"
 func main() {
 	apiClient := halapi.HalClient{}
 
-	// create log directory
-	rootDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		fmt.Printf(err.Error())
-		return
+	papertrailLogger := papertrail.PapertrailLogSave{
+		App: "Hal",
+		URL: os.Getenv(config.LogEndpoint),
 	}
-	logDir := path.Join(rootDir, "halapi/logs", logFileName)
-	fileLogger := logger.FileLogSave{LogFileDir: logDir}
-	apiClient.Log = logger.SystemLogger{LogSave: fileLogger}
+	apiClient.Log = logger.SystemLogger{LogSave: papertrailLogger}
 	apiClient.Router = router.HalRouter{RequestHandler: http.NewServeMux()}
 
 	cli, err := client.NewEnvClient()
@@ -39,8 +37,8 @@ func main() {
 	}
 	apiClient.Engine = compose.Docker{Client: cli}
 	apiClient.CreateRoutes()
+	fmt.Printf("Running Hal client on port 3000")
 
-	apiClient.Log.Info("Running Hal Client on port 3000")
 	server := manners.NewServer()
 	server.Handler = apiClient.Router.RequestHandler
 	server.Addr = ":3000"
