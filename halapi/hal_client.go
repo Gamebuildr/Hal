@@ -2,7 +2,6 @@ package halapi
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/Gamebuildr/Hal/pkg/auth"
@@ -26,30 +25,23 @@ type Response struct {
 
 // CreateRoutes adds specific route endpoints
 func (api *HalClient) CreateRoutes() {
-	api.Router.AddRoute(RunContainerRoute, auth.JWTAuthMiddleware.Handler(api.runContainerHandler()))
+	api.Router.AddRoute(RunContainerRoute, api.runContainerHandler())
 	api.Router.AddRoute(ContainerCountRoute, auth.JWTAuthMiddleware.Handler(api.containerCountHandler()))
 }
 
 func (api *HalClient) runContainerHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		containerData := compose.ContainerData{}
-		data, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			api.Log.Error(err.Error())
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-		if err := json.Unmarshal(data, &containerData); err != nil {
-			api.Log.Error(err.Error())
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-		if err := api.Engine.RunContainer(containerData.Image); err != nil {
-			api.Log.Error(err.Error())
+		image := r.FormValue("image")
+		if err := api.Engine.RunContainer(image); err != nil {
 			w.Header().Set("Content-Type", "application/json")
 			m := Response{Error: compose.ContainerNotFound}
-			resp, _ := json.Marshal(m)
 
+			api.Log.Error(err.Error())
+			resp, _ := json.Marshal(m)
 			w.Write(resp)
+			return
 		}
+		w.Write([]byte(image))
 	})
 }
 

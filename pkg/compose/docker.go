@@ -4,7 +4,12 @@ import (
 	"context"
 	"errors"
 
+	"fmt"
+	"os"
+
+	"github.com/Gamebuildr/Hal/pkg/config"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 )
 
@@ -18,12 +23,29 @@ const ContainerNotFound string = "container id not found"
 
 // RunContainer will run a docker container
 func (engine Docker) RunContainer(image string) error {
-	containerID, err := engine.getContainerID(image)
+	ctx := context.Background()
+	env := []string{
+		fmt.Sprintf("GCLOUD_PROJECT=%s", os.Getenv("GCLOUD_PROJECT")),
+		fmt.Sprintf("GCLOUD_SERVICE_KEY=%s", os.Getenv("GCLOUD_SERVICE_KEY")),
+		fmt.Sprintf("PAPERTRAIL_ENDPOINT=%s", os.Getenv(config.LogEndpoint)),
+		fmt.Sprintf("REGION=%s", os.Getenv(config.Region)),
+		fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", os.Getenv(config.AWSAccessKeyId)),
+		fmt.Sprintf("AWS_SECRET_ACCESS_KEY=%s", os.Getenv(config.AWSAccessKey)),
+		fmt.Sprintf("CODE_REPO_STORAGE=%s", os.Getenv(config.CodeRepoStorage)),
+		fmt.Sprintf("QUEUE_URL=%s", os.Getenv(config.QueueURL)),
+		fmt.Sprintf("MRROBOT_NOTIFICATIONS=%s", os.Getenv(config.MrrobotNotifications)),
+		fmt.Sprintf("GAMEBUILDR_NOTIFICATIONS=%s", os.Getenv(config.GamebuildrNotifications)),
+		fmt.Sprintf("GO_ENV=%s", os.Getenv(config.GoEnv)),
+	}
+
+	resp, err := engine.Client.ContainerCreate(ctx, &container.Config{
+		Image: image,
+		Env:   env,
+	}, nil, nil, "")
 	if err != nil {
 		return err
 	}
-	ctx := context.Background()
-	if err := engine.Client.ContainerStart(ctx, containerID, types.ContainerStartOptions{}); err != nil {
+	if err := engine.Client.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
 		return err
 	}
 	return nil

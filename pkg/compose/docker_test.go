@@ -5,18 +5,19 @@ import (
 
 	"github.com/Gamebuildr/Hal/pkg/testutils"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 )
 
 func TestDockerCanRunSpecifiedContainer(t *testing.T) {
 	mockImage := "mock/image:latest"
 	mockID := "123456789"
-	mockContainers := []types.Container{
-		types.Container{ID: mockID, Image: mockImage},
-		types.Container{ID: "987654321", Image: "test/mock/images:latest"},
+	mockContainers := []container.ContainerCreateCreatedBody{
+		container.ContainerCreateCreatedBody{ID: mockID},
+		container.ContainerCreateCreatedBody{ID: "987654321"},
 	}
 
-	testServer := testutils.OkResponseContainerServer(mockContainers)
+	testServer := testutils.CreateContainerServer(mockContainers)
 	defer testServer.Close()
 
 	cli, err := client.NewClient(testServer.URL, "1.13", nil, map[string]string{})
@@ -33,14 +34,9 @@ func TestDockerCanRunSpecifiedContainer(t *testing.T) {
 }
 
 func TestDockerRunContainerReturnsErrorWhenContainerNotFound(t *testing.T) {
-	mockImage := "mock/image:latest"
-	mockID := "123456789"
-	mockContainers := []types.Container{
-		types.Container{ID: mockID, Image: mockImage},
-		types.Container{ID: "987654321", Image: "test/mock/images:latest"},
-	}
+	mockContainers := []container.ContainerCreateCreatedBody{}
 
-	testServer := testutils.OkResponseContainerServer(mockContainers)
+	testServer := testutils.CreateContainerServer(mockContainers)
 	defer testServer.Close()
 
 	cli, err := client.NewClient(testServer.URL, "1.13", nil, map[string]string{})
@@ -53,7 +49,7 @@ func TestDockerRunContainerReturnsErrorWhenContainerNotFound(t *testing.T) {
 
 	runErr := container.Engine.RunContainer("no_container")
 	if runErr == nil {
-		t.Errorf("Expected error container not found")
+		t.Errorf("Expected error for container not found not thrown")
 	}
 }
 
