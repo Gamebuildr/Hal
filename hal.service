@@ -1,7 +1,9 @@
+# The environment is stored in /etc/sysconfig/halenv
 [Unit]
 Description=Hal Container Service
 
 [Service]
+EnvironmentFile=-/etc/sysconfig/halenv
 ExecStart=/path/to/hal/bin
 Restart=always
 RestartSec=3

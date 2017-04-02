@@ -36,6 +36,9 @@ func (engine Docker) RunContainer(image string) error {
 		fmt.Sprintf("MRROBOT_NOTIFICATIONS=%s", os.Getenv(config.MrrobotNotifications)),
 		fmt.Sprintf("GAMEBUILDR_NOTIFICATIONS=%s", os.Getenv(config.GamebuildrNotifications)),
 		fmt.Sprintf("GO_ENV=%s", os.Getenv(config.GoEnv)),
+		fmt.Sprintf("BUILD_TARGET_PATH=%s", os.Getenv(config.BuildTargetPath)),
+		fmt.Sprintf("BUILD_SOURCE_PATH=%s", os.Getenv(config.BuildSourcePath)),
+		fmt.Sprintf("ENGINE_LOG_PATH=%s", os.Getenv(config.EngineLogPath)),
 	}
 
 	resp, err := engine.Client.ContainerCreate(ctx, &container.Config{

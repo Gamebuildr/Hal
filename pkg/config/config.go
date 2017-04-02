@@ -24,6 +24,17 @@ const CodeRepoStorage string = "CODE_REPO_STORAGE"
 // GoEnv is the environment the current system is operating in
 const GoEnv string = "GO_ENV"
 
+// AWSAccessKeyId is the key id for using amazon services
 const AWSAccessKeyId string = "AWS_ACCESS_KEY_ID"
 
+// AWSAccessKey is the secret key for using amazon services
 const AWSAccessKey string = "AWS_SECRET_ACCESS_KEY"
+
+// BuildSourcePath is the source code for game engines
+const BuildSourcePath string = "BUILD_SOURCE_PATH"
+
+// BuildTargetPath is the target path for game builds
+const BuildTargetPath string = "BUILD_TARGET_PATH"
+
+// EngineLogPath is the log path output from game engines
+const EngineLogPath string = "ENGINE_LOG_PATH"
