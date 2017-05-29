@@ -36,5 +36,11 @@ const BuildSourcePath string = "BUILD_SOURCE_PATH"
 // BuildTargetPath is the target path for game builds
 const BuildTargetPath string = "BUILD_TARGET_PATH"
 
-// EngineLogPath is the log path output from game engines
+// EngineLogPath is the directory for the engines build log output
 const EngineLogPath string = "ENGINE_LOG_PATH"
+
+// LogPath is the directory for the log output
+const LogPath string = "HAL_LOG_PATH"
+
+// DevMode defines whether or not to run in developer mode
+const DevMode string = "DEV_MODE"

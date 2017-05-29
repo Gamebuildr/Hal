@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"os"
+	"strconv"
 
 	"github.com/Gamebuildr/Hal/halapi"
 	"github.com/Gamebuildr/Hal/pkg/channels"
@@ -21,13 +22,16 @@ import (
 const logFileName string = "hal_api_client_"
 
 func main() {
+	devMode, err := strconv.ParseBool(os.Getenv(config.DevMode))
+	if err != nil {
+		devMode = false
+	}
+
 	apiClient := halapi.HalClient{}
 
-	papertrailLogger := papertrail.PapertrailLogSave{
-		App: "Hal",
-		URL: os.Getenv(config.LogEndpoint),
-	}
-	apiClient.Log = logger.SystemLogger{LogSave: papertrailLogger}
+	logger := getLogger(devMode)
+
+	apiClient.Log = logger
 	apiClient.Router = router.HalRouter{RequestHandler: http.NewServeMux()}
 
 	cli, err := client.NewEnvClient()
@@ -54,4 +58,24 @@ func main() {
 		apiClient.Log.Error(err.Error())
 		return
 	}
+}
+
+func getLogger(devMode bool) logger.SystemLogger {
+	logs := new(logger.SystemLogger)
+	if devMode {
+		println("Running in dev mode")
+		fileLogger := logger.FileLogSave{
+			LogFileName: logFileName,
+			LogFileDir:  os.Getenv(config.LogPath),
+		}
+		logs.LogSave = fileLogger
+	} else {
+		papertrailLog := papertrail.PapertrailLogSave{
+			App: "Hal",
+			URL: os.Getenv(config.LogEndpoint),
+		}
+		logs.LogSave = papertrailLog
+	}
+
+	return *logs
 }

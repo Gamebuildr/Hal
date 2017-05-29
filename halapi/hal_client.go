@@ -2,6 +2,7 @@ package halapi
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/Gamebuildr/Hal/pkg/auth"
@@ -31,8 +32,19 @@ func (api *HalClient) CreateRoutes() {
 
 func (api *HalClient) runContainerHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		image := r.FormValue("image")
-		if err := api.Engine.RunContainer(image); err != nil {
+		query := r.URL.Query()
+		image := query.Get("image")
+		if image == "" {
+			api.Log.Error("No image passed in request")
+			http.Error(w, "No image passed in request", http.StatusInternalServerError)
+		}
+		data, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			api.Log.Error(err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		if err := api.Engine.RunContainer(data, image); err != nil {
+			api.Log.Error(err.Error())
 			w.Header().Set("Content-Type", "application/json")
 			m := Response{Error: compose.ContainerNotFound}
 
