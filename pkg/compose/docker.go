@@ -21,7 +21,7 @@ type Docker struct {
 const ContainerNotFound string = "container id not found"
 
 // RunContainer will run a docker container
-func (engine Docker) RunContainer(rawMessage []byte, image string) error {
+func (engine Docker) RunContainer(message string, image string) error {
 	ctx := context.Background()
 	env := []string{
 		fmt.Sprintf("GCLOUD_PROJECT=%s", os.Getenv("GCLOUD_PROJECT")),
@@ -38,7 +38,7 @@ func (engine Docker) RunContainer(rawMessage []byte, image string) error {
 		fmt.Sprintf("BUILD_TARGET_PATH=%s", os.Getenv(config.BuildTargetPath)),
 		fmt.Sprintf("BUILD_SOURCE_PATH=%s", os.Getenv(config.BuildSourcePath)),
 		fmt.Sprintf("ENGINE_LOG_PATH=%s", os.Getenv(config.EngineLogPath)),
-		fmt.Sprintf("MESSAGE_STRING=%s", string(rawMessage)),
+		fmt.Sprintf("MESSAGE_STRING=%s", message),
 	}
 
 	resp, err := engine.Client.ContainerCreate(ctx, &container.Config{

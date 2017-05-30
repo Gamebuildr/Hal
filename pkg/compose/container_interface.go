@@ -3,7 +3,7 @@ package compose
 // Engine is the interface to implement container systems
 type Engine interface {
 	ActiveContainers() (int, error)
-	RunContainer(rawMessage []byte, image string) error
+	RunContainer(message string, image string) error
 	getContainerID(image string) (string, error)
 }
 

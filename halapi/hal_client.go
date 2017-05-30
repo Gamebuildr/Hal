@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"fmt"
+
 	"github.com/Gamebuildr/Hal/pkg/auth"
 	"github.com/Gamebuildr/Hal/pkg/compose"
 	"github.com/Gamebuildr/Hal/pkg/router"
@@ -38,11 +40,13 @@ func (api *HalClient) runContainerHandler() http.Handler {
 			api.Log.Error("No image passed in request")
 			http.Error(w, "No image passed in request", http.StatusInternalServerError)
 		}
-		data, err := ioutil.ReadAll(r.Body)
+		rawData, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			api.Log.Error(err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+		data := string(rawData)
+		api.Log.Info(fmt.Sprintf("Attemping to run container for %v with %v", image, data))
 		if err := api.Engine.RunContainer(data, image); err != nil {
 			api.Log.Error(err.Error())
 			w.Header().Set("Content-Type", "application/json")
@@ -53,6 +57,7 @@ func (api *HalClient) runContainerHandler() http.Handler {
 			w.Write(resp)
 			return
 		}
+		api.Log.Info("Run successfully")
 		w.Write([]byte(image))
 	})
 }
