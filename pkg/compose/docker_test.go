@@ -28,7 +28,7 @@ func TestDockerCanRunSpecifiedContainer(t *testing.T) {
 	engine := Docker{Client: cli}
 	container := Container{Engine: engine}
 
-	if err := container.Engine.RunContainer(mockImage); err != nil {
+	if err := container.Engine.RunContainer(mockImage, "image"); err != nil {
 		t.Fatalf(err.Error())
 	}
 }
@@ -47,7 +47,7 @@ func TestDockerRunContainerReturnsErrorWhenContainerNotFound(t *testing.T) {
 	engine := Docker{Client: cli}
 	container := Container{Engine: engine}
 
-	runErr := container.Engine.RunContainer("no_container")
+	runErr := container.Engine.RunContainer("no_container", "image")
 	if runErr == nil {
 		t.Errorf("Expected error for container not found not thrown")
 	}

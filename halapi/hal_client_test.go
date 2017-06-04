@@ -45,8 +45,8 @@ func TestHalClientRunContainerFindsCorrectImage(t *testing.T) {
 	}
 	mockClient.CreateRoutes()
 
-	image := []byte(`{"image":"mock/image:latest"}`)
-	r, err := http.NewRequest("POST", RunContainerRoute, bytes.NewBuffer(image))
+	message := []byte(`{"message": "message"}`)
+	r, err := http.NewRequest("POST", RunContainerRoute+"?image=mock/image:latest", bytes.NewBuffer(message))
 	testutils.AuthenticateRoute(r)
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -73,8 +73,8 @@ func TestHalClientRunContainerReturnsErrorWhenImageNotFound(t *testing.T) {
 	}
 	mockClient.CreateRoutes()
 
-	image := []byte(`{"image":"different/image:latest"}`)
-	r, err := http.NewRequest("POST", RunContainerRoute, bytes.NewBuffer(image))
+	message := []byte(`{"message": "message"}`)
+	r, err := http.NewRequest("POST", RunContainerRoute+"?image=different/image:latest", bytes.NewBuffer(message))
 	testutils.AuthenticateRoute(r)
 	if err != nil {
 		t.Fatalf(err.Error())

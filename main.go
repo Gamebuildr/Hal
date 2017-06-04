@@ -42,6 +42,7 @@ func main() {
 	apiClient.Engine = compose.Docker{Client: cli}
 	apiClient.CreateRoutes()
 	fmt.Printf("Running Hal client on port 3000")
+	apiClient.Log.Info("Running Hal client on port 3000")
 
 	server := manners.NewServer()
 	server.Handler = apiClient.Router.RequestHandler
