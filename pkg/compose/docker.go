@@ -1,7 +1,10 @@
 package compose
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/gob"
 
 	"fmt"
 	"os"
@@ -40,6 +43,25 @@ func (engine Docker) RunContainer(message string, image string) error {
 		fmt.Sprintf("ENGINE_LOG_PATH=%s", os.Getenv(config.EngineLogPath)),
 		fmt.Sprintf("MESSAGE_STRING=%s", message),
 	}
+
+	authConf := types.AuthConfig{
+		Username:      "_json_key",
+		Password:      os.Getenv("GCLOUD_SERVICE_KEY"),
+		ServerAddress: "https://gcr.io",
+	}
+
+	b := bytes.Buffer{}
+	e := gob.NewEncoder(&b)
+
+	if err := e.Encode(authConf); err != nil {
+		return err
+	}
+
+	encodedAuth := base64.StdEncoding.EncodeToString(b.Bytes())
+
+	engine.Client.ImagePull(ctx, image, types.ImagePullOptions{
+		RegistryAuth: encodedAuth,
+	})
 
 	resp, err := engine.Client.ContainerCreate(ctx, &container.Config{
 		Image: image,
