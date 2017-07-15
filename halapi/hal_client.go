@@ -46,13 +46,25 @@ func (api *HalClient) runContainerHandler() http.Handler {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		data := string(rawData)
-		api.Log.Info(fmt.Sprintf("Attemping to run container for %v with %v", image, data))
-		if err := api.Engine.RunContainer(data, image); err != nil {
+		api.Log.Info(fmt.Sprintf("Attemping to pull image for %s", image))
+		pullOutput, err := api.Engine.PullImage(image)
+		if err != nil {
 			api.Log.Error(err.Error())
 			w.Header().Set("Content-Type", "application/json")
 			m := Response{Error: compose.ContainerNotFound}
 
+			resp, _ := json.Marshal(m)
+			w.Write(resp)
+			return
+		}
+		api.Log.Info(fmt.Sprintf("Image pull successful\n %s", pullOutput))
+
+		api.Log.Info(fmt.Sprintf("Attemping to run container for %v with %v", image, data))
+		if err = api.Engine.RunContainer(data, image); err != nil {
 			api.Log.Error(err.Error())
+			w.Header().Set("Content-Type", "application/json")
+			m := Response{Error: compose.ContainerRunFailed}
+
 			resp, _ := json.Marshal(m)
 			w.Write(resp)
 			return

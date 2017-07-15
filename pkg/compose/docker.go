@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
-	"encoding/gob"
+	"os/exec"
+	"strings"
+	"syscall"
 
 	"fmt"
 	"os"
@@ -23,12 +25,37 @@ type Docker struct {
 // ContainerNotFound error message when container id cannot be found with image name
 const ContainerNotFound string = "container id not found"
 
+// ContainerRunFailed error message when container failed to run
+const ContainerRunFailed string = "container id failed to run"
+
+// PullImage will pull down the image specified
+func (engine Docker) PullImage(image string) (string, error) {
+	gamebuildrKey, err := decodeBase64Key(os.Getenv(config.GCloudServiceKey))
+	if err != nil {
+		return "", err
+	}
+
+	cmd := exec.Command("docker", "login", "-u", "_json_key", "-p", string(gamebuildrKey), "https://gcr.io")
+	loginOutput, err := runCommand(cmd)
+	if err != nil {
+		return "", err
+	}
+
+	cmd = exec.Command("docker", "pull", image)
+	pullOutput, err := runCommand(cmd)
+	if err != nil {
+		return "", err
+	}
+
+	return loginOutput + pullOutput, nil
+}
+
 // RunContainer will run a docker container
 func (engine Docker) RunContainer(message string, image string) error {
 	ctx := context.Background()
 	env := []string{
-		fmt.Sprintf("GCLOUD_PROJECT=%s", os.Getenv("GCLOUD_PROJECT")),
-		fmt.Sprintf("GCLOUD_SERVICE_KEY=%s", os.Getenv("GCLOUD_SERVICE_KEY")),
+		fmt.Sprintf("GCLOUD_PROJECT=%s", os.Getenv(config.GCloudProject)),
+		fmt.Sprintf("GCLOUD_SERVICE_KEY=%s", os.Getenv(config.GCloudServiceKey)),
 		fmt.Sprintf("PAPERTRAIL_ENDPOINT=%s", os.Getenv(config.LogEndpoint)),
 		fmt.Sprintf("REGION=%s", os.Getenv(config.Region)),
 		fmt.Sprintf("AWS_ACCESS_KEY_ID=%s", os.Getenv(config.AWSAccessKeyId)),
@@ -42,30 +69,6 @@ func (engine Docker) RunContainer(message string, image string) error {
 		fmt.Sprintf("BUILD_SOURCE_PATH=%s", os.Getenv(config.BuildSourcePath)),
 		fmt.Sprintf("ENGINE_LOG_PATH=%s", os.Getenv(config.EngineLogPath)),
 		fmt.Sprintf("MESSAGE_STRING=%s", message),
-	}
-
-	authConf := types.AuthConfig{
-		Username:      "_json_key",
-		Password:      os.Getenv("GCLOUD_SERVICE_KEY"),
-		ServerAddress: "https://gcr.io",
-	}
-
-	b := bytes.Buffer{}
-	e := gob.NewEncoder(&b)
-
-	if err := e.Encode(authConf); err != nil {
-		return err
-	}
-
-	encodedAuth := base64.StdEncoding.EncodeToString(b.Bytes())
-
-	closer, err := engine.Client.ImagePull(ctx, image, types.ImagePullOptions{
-		RegistryAuth: encodedAuth,
-	})
-	closer.Close()
-
-	if err != nil {
-		return err
 	}
 
 	resp, err := engine.Client.ContainerCreate(ctx, &container.Config{
@@ -103,4 +106,31 @@ func (engine Docker) getContainerID(image string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("%v: %v", ContainerNotFound, image)
+}
+
+func decodeBase64Key(encodedKey string) ([]byte, error) {
+	key := strings.Replace(encodedKey, " ", "", -1)
+
+	decodedKey, err := base64.StdEncoding.DecodeString(key)
+	if err != nil {
+		return nil, err
+	}
+	return decodedKey, nil
+}
+
+func runCommand(cmd *exec.Cmd) (string, error) {
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+
+	cmdOutput := &bytes.Buffer{}
+	cmd.Stdout = cmdOutput
+	cmd.Stderr = cmdOutput
+
+	if err := cmd.Start(); err != nil {
+		return "", fmt.Errorf("%s, %s", err.Error(), cmdOutput.Bytes())
+	}
+	if err := cmd.Wait(); err != nil {
+		return "", fmt.Errorf("%s, %s", err.Error(), cmdOutput.Bytes())
+	}
+
+	return string(cmdOutput.Bytes()), nil
 }

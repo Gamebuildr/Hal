@@ -44,3 +44,9 @@ const LogPath string = "HAL_LOG_PATH"
 
 // DevMode defines whether or not to run in developer mode
 const DevMode string = "DEV_MODE"
+
+// GCloudServiceKey is the base64 encoded google service key string
+const GCloudServiceKey string = "GCLOUD_SERVICE_KEY"
+
+// GCloudProject is the name of the google project
+const GCloudProject string = "GCLOUD_PROJECT"
