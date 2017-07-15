@@ -59,9 +59,14 @@ func (engine Docker) RunContainer(message string, image string) error {
 
 	encodedAuth := base64.StdEncoding.EncodeToString(b.Bytes())
 
-	engine.Client.ImagePull(ctx, image, types.ImagePullOptions{
+	closer, err := engine.Client.ImagePull(ctx, image, types.ImagePullOptions{
 		RegistryAuth: encodedAuth,
 	})
+	closer.Close()
+
+	if err != nil {
+		return err
+	}
 
 	resp, err := engine.Client.ContainerCreate(ctx, &container.Config{
 		Image: image,
