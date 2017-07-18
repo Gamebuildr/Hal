@@ -69,6 +69,7 @@ func (engine Docker) RunContainer(message string, image string) error {
 		fmt.Sprintf("BUILD_SOURCE_PATH=%s", os.Getenv(config.BuildSourcePath)),
 		fmt.Sprintf("ENGINE_LOG_PATH=%s", os.Getenv(config.EngineLogPath)),
 		fmt.Sprintf("MESSAGE_STRING=%s", message),
+		fmt.Sprintf("GAMEBUILDR_ENCRYPTION_KEY=%s", os.Getenv(config.GamebuildrEncryptionKey)),
 	}
 
 	resp, err := engine.Client.ContainerCreate(ctx, &container.Config{

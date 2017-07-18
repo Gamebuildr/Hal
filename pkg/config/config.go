@@ -50,3 +50,6 @@ const GCloudServiceKey string = "GCLOUD_SERVICE_KEY"
 
 // GCloudProject is the name of the google project
 const GCloudProject string = "GCLOUD_PROJECT"
+
+// GamebuildrEncryptionKey is the string representation of the message to use
+const GamebuildrEncryptionKey string = "GAMEBUILDR_ENCRYPTION_KEY"
